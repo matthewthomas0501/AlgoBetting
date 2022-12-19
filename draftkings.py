@@ -15,10 +15,7 @@ def test_selenium_hello():
     """Perform a Google search using Selenium and a headless Chrome browser."""
 
 
-    #input_element = driver.find_element("xpath", "//div[@class='best-odds__game-info']")
-    
-    
-    #game lines is formatted as top team(spread, odds), top team(money line), bottom team(spread, odds), bottom team(money line),
+
 
 
 
@@ -30,14 +27,15 @@ def test_selenium_hello():
     url_cfp = "https://sportsbook.draftkings.com//sites/US-NJ-SB/api/v5/eventgroups/87637?format=json"
     url_nhl = "https://sportsbook.draftkings.com//sites/US-NJ-SB/api/v5/eventgroups/42133?format=json"
     
-    req_nfl=requests.get(url_nfl).json()
+    req=requests.get(url_nfl).json()
     # print(req_nfl)
-    req_nfl = req_nfl['eventGroup']['offerCategories'][0]['offerSubcategoryDescriptors'][0]['offerSubcategory']['offers']
+    req = req['eventGroup']['offerCategories'][0]['offerSubcategoryDescriptors'][0]['offerSubcategory']['offers']
 
     # print(req)
     away_team = "matt"
     home_team = "matt"
-    for i in req_nfl:
+    #Getting odds data from draft kings api
+    for i in req:
         
         if 'label' in i[0]['outcomes'][0]: #HAVE TO DO SPECIAL THINGS WHEN DRAFT KINGS SHUTS DOWN CERTAIN ODDS
             away_team = i[0]['outcomes'][0]['label']
@@ -72,15 +70,11 @@ def test_selenium_hello():
                     print(f"Spread Odds: {i[0]['outcomes'][1]['oddsAmerican']}")
             if j == 2:
                 if 'oddsAmerican' in i[2]['outcomes'][0]:
-                    home_team = i[2]['outcomes'][0]['label']
+                    home_team = i[2]['outcomes'][1]['label']
                     print(f"{home_team} Money Line: {i[2]['outcomes'][1]['oddsAmerican']}")
 
         
         print("\n")
-    # content=req.text
-    # print(content)
-    # soup=BeautifulSoup(content)
-    # print(soup)
     
 
 
