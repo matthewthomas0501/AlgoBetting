@@ -3,73 +3,85 @@
 import subprocess
 from pathlib import Path
 
+from bs4 import BeautifulSoup
+import requests
 import selenium
 import selenium.webdriver
 from selenium.webdriver.common.by import By
 
 
+
 def test_selenium_hello():
     """Perform a Google search using Selenium and a headless Chrome browser."""
 
-    # Configure Selenium
-    #
-    # Pro-tip: remove the "headless" option and set a breakpoint.  A Chrome
-    # browser window will open, and you can play with it using the developer
-    # console.
-    options = selenium.webdriver.chrome.options.Options()
-    #options.add_argument("--headless")
 
-    # chromedriver is not in the PATH, so we need to provide selenium with
-    # a full path to the executable.
-    node_modules_bin = subprocess.run(
-        ["npm", "bin"],
-        stdout=subprocess.PIPE,
-        universal_newlines=True,
-        check=True
-    )
-    node_modules_bin_path = node_modules_bin.stdout.strip()
-    chromedriver_path = Path(node_modules_bin_path) / "chromedriver"
-
-    driver = selenium.webdriver.Chrome(
-        options=options,
-        executable_path=str(chromedriver_path),
-    )
-
-    # An implicit wait tells WebDriver to poll the DOM for a certain amount of
-    # time when trying to find any element (or elements) not immediately
-    # available. Once set, the implicit wait lasts for the life of the
-    # WebDriver object.
-    #
-    # https://selenium-python.readthedocs.io/waits.html#implicit-waits
-    driver.implicitly_wait(1)
-
-    # Load Google search main page
-    driver.get("https://www.actionnetwork.com/odds")
-
-
-    
-    input_element = driver.find_elements(by=By.XPATH, value="//div[@class='best-odds__game-info']")
-    
     #input_element = driver.find_element("xpath", "//div[@class='best-odds__game-info']")
     
-    for games in input_element:
-        data = games.text.split("\n")
-        if len(data) == 6:
-            print(f"Game in Progress {data[0]} playing {data[3]}")
-            team_1 = int(data[2])
-            team_2 = int(data[5])
-            if team_1 > team_2:
-                print(f"{data[0]} winning {team_1} to {team_2}")
-            else:
-                print(f"{data[3]} winning {team_2} to {team_1}")
-        print("\n")
-        # print(data)
-        
     
-    
+    #game lines is formatted as top team(spread, odds), top team(money line), bottom team(spread, odds), bottom team(money line),
 
-   
-    driver.quit()
+
+
+    #Need to do this for the first one because the div class for the second one
+    #Has a break line and is not the same name
+    url="https://sportsbook.draftkings.com/leagues/football/nfl"
+
+    url_nfl = "https://sportsbook.draftkings.com//sites/US-NJ-SB/api/v5/eventgroups/88808?format=json"
+    url_cfp = "https://sportsbook.draftkings.com//sites/US-NJ-SB/api/v5/eventgroups/87637?format=json"
+    url_nhl = "https://sportsbook.draftkings.com//sites/US-NJ-SB/api/v5/eventgroups/42133?format=json"
+    
+    req_nfl=requests.get(url_nfl).json()
+    # print(req_nfl)
+    req_nfl = req_nfl['eventGroup']['offerCategories'][0]['offerSubcategoryDescriptors'][0]['offerSubcategory']['offers']
+
+    # print(req)
+    away_team = "matt"
+    home_team = "matt"
+    for i in req_nfl:
+        
+        if 'label' in i[0]['outcomes'][0]: #HAVE TO DO SPECIAL THINGS WHEN DRAFT KINGS SHUTS DOWN CERTAIN ODDS
+            away_team = i[0]['outcomes'][0]['label']
+            home_team = i[0]['outcomes'][1]['label']
+        
+        for j in range(len(i)):
+
+            if j == 0:
+                if 'line' in i[0]['outcomes'][0]:
+                    print(f"Spread: {i[0]['outcomes'][0]['line']} for {away_team}")
+                    print(f"Spread Odds: {i[0]['outcomes'][0]['oddsAmerican']}")
+            if j == 1:
+                if 'line' in i[1]['outcomes'][0]:
+                    print(i[1]['outcomes'][0]['line'])
+                    print(i[1]['outcomes'][0]['oddsAmerican'])
+                    print("under")
+                    print(i[1]['outcomes'][1]['line'])
+                    print(i[1]['outcomes'][1]['oddsAmerican'])
+            if j == 2:
+                if 'oddsAmerican' in i[2]['outcomes'][0]:
+                    away_team = i[2]['outcomes'][0]['label']
+                    print(f"{away_team} Money Line: {i[2]['outcomes'][0]['oddsAmerican']}")
+
+        
+        print(home_team)
+        for j in range(len(i)):
+
+            if j == 0:
+                if 'line' in i[0]['outcomes'][1]:
+                    
+                    print(f"Spread: {i[0]['outcomes'][1]['line']} for {home_team}")
+                    print(f"Spread Odds: {i[0]['outcomes'][1]['oddsAmerican']}")
+            if j == 2:
+                if 'oddsAmerican' in i[2]['outcomes'][0]:
+                    home_team = i[2]['outcomes'][0]['label']
+                    print(f"{home_team} Money Line: {i[2]['outcomes'][1]['oddsAmerican']}")
+
+        
+        print("\n")
+    # content=req.text
+    # print(content)
+    # soup=BeautifulSoup(content)
+    # print(soup)
+    
 
 
 if __name__ == "__main__":
