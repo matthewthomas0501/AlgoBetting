@@ -43,15 +43,95 @@ input_element = driver.find_elements("xpath", "//table[@class='sortable stats_ta
 
 data = input_element[0].text.split("\n")
 
+CURRENT_WEEK = 16
+long_names = {"Los","San","New","Las","Green","New","Tampa","Kansas"}
 with open("football.csv","w") as csvFile:
+    csvFile.write("Week,Day,Date,Time,Winner,@,Loser,Boxscore,PtsW,PtsL,YdsW,TOW,YdsL,TOL\n")
     for line in data:
         line = line.split(" ")
-        if line[0] != "Week":
-            for temp in line:
-                temp += " "
-                csvFile.write(temp)
+        
+        if line[0] != "Week" and int(line[0]) < CURRENT_WEEK:
+            
+            if "@" in line:
+                team_name = ""
+                location = line.index("@")
+                remove = []
+                for i in range(4,location):
+                    team_name+=line[i]
+                    team_name+=" "
+                    remove.append(line[i])
                 
-        csvFile.write("\n")
+                for i in remove:
+                    # print("removed this ",i)
+                    line.remove(i)
+                
+                team_name = team_name[:-1]
+                line.insert(4,team_name)
+
+                location = line.index("boxscore")
+                team_name = ""
+                remove = []
+                for i in range(6,location):
+                    team_name+=line[i]
+                    team_name+=" "
+                    remove.append(line[i])
+                
+                for i in remove:
+                    # print("removed this ",i)
+                    line.remove(i)
+
+                team_name = team_name[:-1]
+                line.insert(6,team_name)
+                # print("HAS @")
+            else:
+                # print("no lol \n")
+                if line[4] in long_names:
+                    line.insert(7,"<")
+                else:
+                    line.insert(6,"<")
+
+                team_name = ""
+                location = line.index("<")
+                remove = []
+                for i in range(4,location):
+                    team_name+=line[i]
+                    team_name+=" "
+                    remove.append(line[i])
+                
+                for i in remove:
+                    # print("removed this ",i)
+                    line.remove(i)
+                
+                team_name = team_name[:-1]
+                line.insert(4,team_name)
+
+                location = line.index("boxscore")
+                team_name = ""
+                remove = []
+                for i in range(6,location):
+                    team_name+=line[i]
+                    team_name+=" "
+                    remove.append(line[i])
+                
+                for i in remove:
+                    # print("removed this ",i)
+                    line.remove(i)
+
+                team_name = team_name[:-1]
+                line.insert(6,team_name)
+
+            print(line)
+            counter = 0
+            for temp in line:
+                if counter == 13:
+                    csvFile.write(temp)
+                else:
+                    temp += ","
+                    csvFile.write(temp)
+                counter+=1
+                
+            csvFile.write("\n")
+        
 
 
 driver.quit()
